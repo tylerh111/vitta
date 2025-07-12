@@ -1,0 +1,60 @@
+#ifndef VITTA_STD_HPP_
+#define VITTA_STD_HPP_
+
+#include <vitta.hpp>
+
+#include <tuple>
+
+namespace vitta {
+
+/**
+ * @brief Aggregate types to @c std::tuple type.
+ *
+ * @tparam Ts  new types recursively added.
+ */
+template <typename... Ts>
+struct aggregate_tuple {
+    using type = typename aggregate<std::tuple, Ts...>::type;
+};
+
+/**
+ * @brief Alias for @ref vitta::aggregate_tuple<>::type.
+ *
+ * @tparam Ts  new types
+ */
+template <typename... Ts>
+using aggregate_tuple_t = typename aggregate_tuple<Ts...>::type;
+
+}  // namespace vitta
+
+
+
+#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+
+#include <variant>
+
+namespace vitta {
+
+/**
+ * @brief Aggregate types to @c std::variant type.
+ *
+ * @tparam Ts  new types recursively added.
+ */
+template <typename... Ts>
+struct aggregate_variant {
+    using type = typename aggregate<std::variant, Ts...>::type;
+};
+
+/**
+ * @brief Alias for @ref vitta::aggregate_variant<>::type.
+ *
+ * @tparam Ts  new types
+ */
+template <typename... Ts>
+using aggregate_variant_t = typename aggregate_variant<Ts...>::type;
+
+}  // vitta
+
+#endif  // version check
+
+#endif  // VITTA_STD_HPP_

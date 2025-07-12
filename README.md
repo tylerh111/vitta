@@ -1,14 +1,14 @@
 # ViTTA
 
-A C++ variadic (i) template type aggregation tool.
+A C++ variadic template type aggregation tool.
 
 ## Problem
+
 There are cases where it may be necessary to extend a C++ variant's type.
 This can be done by nesting variants, but it does collapse the nested variants.
 
 One particular reason is if a nested variant is visited, another visit is necessary to get to the nested type.
 Moreover, assignment becomes an issue when trying to assign the "super"-variant with a type of a nested variant.
-
 
 ```c++
 using var_t = std::variant<int>;
@@ -17,15 +17,14 @@ using var_new_t = std::variant<var_t,       double>;
 //              = std::variant<std::variant<int>, double>
 //                std::variant<int,               double>  // want
 
-
 int main() {
     // var holds a std::variant<int>
     var_new_t var = 3;
 
     std::visit([] <typename T> (T&& arg) {
-        if      constexpr (std::is_same_v<T, double>)   {/*...*/}
-        else if constexpr (std::is_same_v<T, var_t>)    {/*...*/}
-        else if constexpr (std::is_same_v<T, int>)      {/*...*/} // unused
+        if      constexpr (std::is_same_v<std::decay_t<T>, double>) {/*...*/}
+        else if constexpr (std::is_same_v<std::decay_t<T>, var_t>)  {/*...*/}
+        else if constexpr (std::is_same_v<std::decay_t<T>, int>)    {/*...*/} // unused
     }, var);
 }
 ```
@@ -36,70 +35,95 @@ This insures we can visit this variant without having to nest calls to variants.
 
 Enter ViTTA.
 
-ViTTA is a header only library that adds two type triats that collapse/aggregates variants and tuples.
+ViTTA is a header only library that adds two type traits that collapse/aggregates variants and tuples.
 
 ```c++
-using var_t std::variant<int>;
+using var_t = std::variant<int>;
 
-using var_new_t = vitta::variant_aggregate_t<var_t, double>;
+using var_new_t = vitta::aggregate_variant_t<var_t, double>;
 //              = std::variant<int, double>
-
 
 int main() {
     // var hold an int
     var_new_t var = 3;
 
     std::visit([] <typename T> (T&& arg) {
-        if      constexpr (std::is_same_v<T, double>)   {/*...*/}
-        else if constexpr (std::is_same_v<T, var_t>)    {/*...*/} // unused
-        else if constexpr (std::is_same_v<T, int>)      {/*...*/}
+        if      constexpr (std::is_same_v<std::decay_t<T>, double>) {/*...*/}
+        else if constexpr (std::is_same_v<std::decay_t<T>, var_t>)  {/*...*/} // unused
+        else if constexpr (std::is_same_v<std::decay_t<T>, int>)    {/*...*/}
     }, var);
 }
 ```
 
 ## Usage
-Simply include either `vitta/tuple_aggregate.hpp` or `vitta/variant_aggregate.hpp`.
+
+The generic `vitta::aggregate` is defined in `vitta.hpp`.
+A convenience aliases for `std::tuple` and `std::variant` aggregation in `vitta_std.hpp`.
 This library defines the following types for the end user.
 
 ```c++
+// generic aggregation
+template <template <typename...> class G, typename Ts...>
+struct vitta::aggregate;
+
+template <template <typename...> class G, typename Ts...>
+using vitta::aggregate_t = typename vitta::aggregate<G, Ts...>::type;
+
 // variant aggregation
-template <typename T, typename... NewTVs>
-struct vitta::variant_aggregate;
+template <typename... Ts>
+struct vitta::aggregate_variant;
 
-template <typename TV, typename... NewTVs>
-using vitta::variant_aggregate_t =
-    typename variant_aggregate<TV, NewTVs...>::type;
-
+template <typename... Ts>
+using vitta::aggregate_variant_t = typename vitta::aggregate_variant<Ts...>::type;
 
 // tuple aggregation
-template <typename T, typename... NewTVs>
-struct vitta::tuple_aggregate;
+template <typename... Ts>
+struct vitta::aggregate_tuple;
 
-template <typename TV, typename... NewTVs>
-using vitta::tuple_aggregate_t =
-    typename tuple_aggregate<TV, NewTVs...>::type;
+template <typename... Ts>
+using vitta::aggregate_tuple_t = typename vitta::aggregate_tuple<Ts...>::type;
+```
+
+## Examples
+
+The following are example use cases for the library.
+Note that the types remain in order.
+
+```c++
+#include <type_traits>
+#include <vitta.hpp>
+
+template <typename...> test;
+template <typename... Ts> using aggregate_test_t = vitta::aggregate_t<test, Ts...>;
+
+static_assert(std::is_same_v< test<int, float>, aggregate_test_t<int,            float > >);
+static_assert(std::is_same_v< test<int, float>, aggregate_test_t<test<int>,      float > >);
+static_assert(std::is_same_v< test<int, float>, aggregate_test_t<     int,  test<float>> >);
+static_assert(std::is_same_v< test<int, float>, aggregate_test_t<test<int>, test<float>> >);
+static_assert(std::is_same_v< test<int, float>, aggregate_test_t<test<int,       float>> >);
 ```
 
 ## Thoughts
-These aggregation tools give the ability to **extend** a variant or tuple.
-Since variants are type-safe unions, `vitta::variant_aggregate` provides the ability to "extend" a variants' types.
-Similarly, tuples can be viewed as structs. Then  `vitta::tuple_aggregate` provides the ability to "inherit" from other tuples.
 
-Here is an example of inheritance using `vitta::tuple_aggregate`.
+Structs are comparable to `std::tuple` as they are ordered types.
+Likewise, unions are comparable to `std::variant` as they are advertised as type-safe unions.
+Then aggregation with `std::tuple` and `std::variant` are synonymous with struct inheritance and nested unions.
+Below is an example of aggregation that emulates C++ behavior with structs and unions.
+
 ```c++
-// using inheritance
+// structs and tuples
 struct X { int; };
 struct Y : X { double; };
 
-// using aggregation
-using X = std::tuple<int>;
-using Y = vitta::tuple_aggregate_t<X, double>;
+using X = vitta::aggregate_tuple_t<int>;
+using Y = vitta::aggregate_tuple_t<X, double>;
+
+// unions and variants
+union X { int };
+union Y { X, double };
+
+using X = vitta::aggregate_variant_t<int>;
+using Y = vitta::aggregate_variant_t<X, double>;
 ```
 
 It's not apparent what the use of this would be (if any), but any interesting outcome for this problem.
-
-## Development
-While I only created aggregation for two types (tuple and variants), this could clearly work for other variadic templates.
-
-A generic version of variadic template aggregation is on the list of things to do.
-
