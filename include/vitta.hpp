@@ -16,9 +16,9 @@ namespace details {
  *  @li Notes, @ref aggregate_recursive is not meant to be instantiated
  *  directly. Use @ref aggregate and @ref aggregate_t.
  *
- * @tparam G      generic variadic type
- * @tparam T      complete variadic type
- * @tparam NewTs  new types
+ * @tparam G     generic variadic type
+ * @tparam C     complete variadic type
+ * @tparam NewTs new types
  */
 template <
     template <typename...> class G,
@@ -34,8 +34,8 @@ template <
  *  This partial specialization is used when there are no remaining types
  *  to be added to the aggregate.
  *
- * @tparam G   generic variadic type
- * @tparam Ts  variadic aggregation types
+ * @tparam G  generic variadic type
+ * @tparam Ts variadic aggregation types
  */
 template <
     template <typename...> class G,
@@ -57,10 +57,10 @@ struct aggregate_recursive <
  *  The type is appended to the end of @c G<Ts...>. Then the rest of
  *  @c OtherTs are recursively added.
  *
- * @tparam G        generic variadic type
- * @tparam Ts       variadic aggregation types
- * @tparam NewT     new type (newly added)
- * @tparam OtherTs  new types (recursively added)
+ * @tparam G       generic variadic type
+ * @tparam Ts      variadic aggregation types
+ * @tparam NewT    new type (newly added)
+ * @tparam OtherTs new types (recursively added)
  */
 template <
     template <typename...> class G,
@@ -91,10 +91,10 @@ struct aggregate_recursive <
  *  The types @c NewTs are appended to the end of @c G<Ts...>. Then the
  *  rest of @c OtherTs are recursively added.
  *
- * @tparam G        generic variadic type
- * @tparam Ts       variadic aggregation types
- * @tparam NewTs    new types (newly added)
- * @tparam OtherTs  new types (recursively added)
+ * @tparam G       generic variadic type
+ * @tparam Ts      variadic aggregation types
+ * @tparam NewTs   new types (newly added)
+ * @tparam OtherTs new types (recursively added)
  */
 template <
     template <typename...> class G,
@@ -126,8 +126,8 @@ struct aggregate_recursive <
  *  It is the starting point for recursion of aggregating types into @c G.
  *  This is the general case that starts the aggregation with the new type.
  *
- * @tparam G      generic variadic type
- * @tparam NewTs  new types
+ * @tparam G     generic variadic type
+ * @tparam NewTs new types
  */
 template <
     template <typename...> class G,
@@ -143,9 +143,9 @@ struct aggregate;
  *  This is a specialization of @c aggregate for non @c G types.
  *  All other types are added recursively.
  *
- * @tparam G      generic variadic type
- * @tparam T      initial type
- * @tparam NewTs  new types (recursively added)
+ * @tparam G     generic variadic type
+ * @tparam T     initial type
+ * @tparam NewTs new types (recursively added)
  */
 template <
     template <typename...> class G,
@@ -174,9 +174,9 @@ struct aggregate <
  *  This is a specialization of @c aggregate for @c G<Ts...> types.
  *  All other types are added recursively.
  *
- * @tparam G      generic variadic type
- * @tparam Ts     initial variadic aggregation types
- * @tparam NewTs  new types (recursively added)
+ * @tparam G     generic variadic type
+ * @tparam Ts    initial variadic aggregation types
+ * @tparam NewTs new types (recursively added)
  */
 template <
     template <typename...> class G,
@@ -200,8 +200,8 @@ struct aggregate <
 /**
  * @brief Alias for @ref vitta::aggregate<>::type.
  *
- * @tparam G   generic variadic type
- * @tparam Ts  new types
+ * @tparam G  generic variadic type
+ * @tparam Ts new types
  */
 template <
     template <typename...> class G,

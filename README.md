@@ -111,6 +111,9 @@ Then aggregation with `std::tuple` and `std::variant` are synonymous with struct
 Below is an example of aggregation that emulates C++ behavior with structs and unions.
 
 ```c++
+#include <vitta.hpp>
+#include <vitta_std.hpp>
+
 // structs and tuples
 struct X { int; };
 struct Y : X { double; };
